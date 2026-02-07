@@ -1,0 +1,12 @@
+{
+  "id": "u1",
+  "first_name": "Test",
+  "last_name": "User",
+  "email": "test@test.com",
+  "phone": "0123456789",
+  "image_url": "avatar.png",
+  "address": "KL",
+  "latitude": 3.14,
+  "longitude": 101.69,
+  "wallet": 50.0
+}
