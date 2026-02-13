@@ -1,50 +1,65 @@
-import 'package:e_commerce_client/core/entities/user_entity.dart';
+import 'package:e_commerce_client/features/domain/entity/user_entity.dart';
 import 'package:e_commerce_client/features/data/models/user_model.dart';
 import 'package:flutter_test/flutter_test.dart';
 import '../../../fixtures/fixture_reader.dart';
 import 'dart:convert';
 
 void main() {
-  group('UserModel', () {
-    late UserModel tUserModel;
-    late Map<String, dynamic> tJsonMap;
+  late UserModel tUserModel;
+  late Map<String, dynamic> tJsonMap;
 
-    setUp(() {
-      tUserModel = UserModel(
-        userId: 'u1',
-        firstName: 'Test',
-        lastName: 'User',
-        email: 'test@test.com',
-        phone: '0123456789',
-        image: 'avatar.png',
-        address: 'KL',
-        latitude: 3.14,
-        longitude: 101.69,
-        wallet: 50.0,
-      );
+  setUp(() {
+    tUserModel = UserModel(
+      userId: 'u1',
+      firstName: 'Test',
+      lastName: 'User',
+      email: 'test@test.com',
+      phone: '0123456789',
+      image: 'avatar.png',
+      address: 'KL',
+      latitude: 3.14,
+      longitude: 101.69,
+      wallet: 50.0,
+    );
 
-      tJsonMap = jsonDecode(fixture('user/user.json'));
-    });
+    tJsonMap = jsonDecode(fixture('user/user.json'));
+  });
 
-    test('should be a subclass of UserEntity', () {
-      // assert
-      expect(tUserModel, isA<UserEntity>());
-    });
+  test('should be a subclass of UserEntity', () {
+    // assert
+    expect(tUserModel, isA<UserEntity>());
+  });
 
-    test('fromJson should return valid UserModel', () {
-      // act
-      final result = UserModel.fromJson(tJsonMap);
+  test('fromJson should return valid UserModel', () {
+    // act
+    final result = UserModel.fromJson(tJsonMap);
 
-      // assert
-      expect(result, equals(tUserModel));
-    });
+    // assert
+    expect(result, equals(tUserModel));
+  });
 
-    test('toJson should return correct map', () {
-      // act
-      final result = tUserModel.toJson();
+  test('toJson should return correct map', () {
+    // act
+    final result = tUserModel.toJson();
 
-      // assert
-      expect(result, equals(tJsonMap));
-    });
+    // assert
+    expect(result, equals(tJsonMap));
+  });
+
+  test('UserModel.toEntity should convert correctly', () {
+    // act
+    final tUserEntity = tUserModel.toEntity();
+
+    // assert
+    expect(tUserEntity.userId, tUserModel.userId);
+    expect(tUserEntity.firstName, tUserModel.firstName);
+    expect(tUserEntity.lastName, tUserModel.lastName);
+    expect(tUserEntity.email, tUserModel.email);
+    expect(tUserEntity.phone, tUserModel.phone);
+    expect(tUserEntity.image, tUserModel.image);
+    expect(tUserEntity.address, tUserModel.address);
+    expect(tUserEntity.latitude, tUserModel.latitude);
+    expect(tUserEntity.longitude, tUserModel.longitude);
+    expect(tUserEntity.wallet, tUserModel.wallet);
   });
 }
