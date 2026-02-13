@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
+import 'core/routes/app_router.dart';
 import 'core/themes/app.theme.dart';
 import 'features/presentation/blocs/auth/auth_bloc.dart';
-import 'features/presentation/screens/auth/sign_up_screen.dart';
 import 'service_locator.dart';
 
 void main() async {
@@ -13,7 +13,7 @@ void main() async {
   await initServiceLocator();
   runApp(
     BlocProvider(
-      create: (context) => AuthBloc(signUp: sl()),
+      create: (context) => AuthBloc(signUp: sl(), login: sl()),
       child: const MyApp(),
     ),
   );
@@ -24,10 +24,10 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return MaterialApp.router(
       debugShowCheckedModeBanner: false,
       theme: AppTheme.theme,
-      home: const SignUpScreen(),
+      routerConfig: AppRouter.router,
     );
   }
 }
