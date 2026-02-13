@@ -73,4 +73,10 @@ class AuthRepositoryImpl implements AuthRepository {
       return Left(Failure(e.message));
     }
   }
+  
+  @override
+  Future<Either<Failure, UserEntity>> loginWithGoogle() {
+    // TODO: implement loginWithGoogle
+    throw UnimplementedError();
+  }
 }
