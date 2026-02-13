@@ -6,13 +6,6 @@ import '../../domain/repositories/auth/auth_repository.dart';
 import '../sources/local/user_local_data.dart';
 import '../sources/remote/auth_remote_data.dart';
 
-/// Implementation of [AuthRepository] for authentication operations.
-///
-/// This class coordinates remote and local data sources:
-/// - Uses [AuthRemoteData] for API calls
-/// - Uses [UserLocalData] for local storage
-///
-/// It also converts exceptions to [Failure] for domain layer consistency.
 class AuthRepositoryImpl implements AuthRepository {
   final AuthRemoteData authRemoteData;
   final UserLocalData userLocalData;
@@ -22,9 +15,6 @@ class AuthRepositoryImpl implements AuthRepository {
     required this.userLocalData,
   });
 
-  /// Registers a new user via [AuthRemoteData].
-  ///
-  /// Returns [Unit] on success or [Failure] on error.
   @override
   Future<Either<Failure, Unit>> signUpWithEmailPassword({
     required String firstName,
@@ -47,10 +37,6 @@ class AuthRepositoryImpl implements AuthRepository {
     }
   }
 
-  /// Logs in a user via [AuthRemoteData] and saves auth via 
-  /// [UserLocalData] info locally.
-  ///
-  /// Returns [UserEntity] on success or [Failure] on error.
   @override
   Future<Either<Failure, UserEntity>> loginWithEmailPassword({
     required email,
@@ -75,8 +61,21 @@ class AuthRepositoryImpl implements AuthRepository {
   }
   
   @override
-  Future<Either<Failure, UserEntity>> loginWithGoogle() {
-    // TODO: implement loginWithGoogle
-    throw UnimplementedError();
+  Future<Either<Failure, UserEntity>> loginWithGoogle() async {
+    try {
+      final auth = await authRemoteData.loginWithGoogle();
+
+      await userLocalData.saveAuth(
+        accessToken: auth.accessToken,
+        refreshToken: auth.refreshToken,
+        provider: auth.provider,
+      );
+
+      return Right(auth.user.toEntity());
+    } on ServerException catch (e) {
+      return Left(Failure(e.message));
+    } on CacheException catch (e) {
+      return Left(Failure(e.message));
+    }
   }
 }
