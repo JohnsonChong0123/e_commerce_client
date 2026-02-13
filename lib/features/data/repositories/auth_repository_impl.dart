@@ -57,9 +57,11 @@ class AuthRepositoryImpl implements AuthRepository {
       return Right(auth.user.toEntity());
     } on ServerException catch (e) {
       return Left(Failure(e.message));
+    } on CacheException catch (e) {
+      return Left(Failure(e.message));
     }
   }
-  
+
   @override
   Future<Either<Failure, UserEntity>> loginWithGoogle() async {
     try {
