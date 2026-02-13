@@ -16,7 +16,7 @@ void main() {
     usecase = SignUp(mockRepository);
   });
 
-  final params = SignUpParams(
+  final tParams = SignUpParams(
     firstName: 'Test',
     lastName: 'User',
     email: 'test@test.com',
@@ -30,26 +30,26 @@ void main() {
       // arrange
       when(
         () => mockRepository.signUpWithEmailPassword(
-          firstName: params.firstName,
-          lastName: params.lastName,
-          email: params.email,
-          password: params.password,
-          phone: params.phone,
+          firstName: tParams.firstName,
+          lastName: tParams.lastName,
+          email: tParams.email,
+          password: tParams.password,
+          phone: tParams.phone,
         ),
       ).thenAnswer((_) async => const Right(unit));
 
       // act
-      final result = await usecase(params);
+      final result = await usecase(tParams);
 
       // assert
       expect(result, const Right(unit));
       verify(
         () => mockRepository.signUpWithEmailPassword(
-          firstName: params.firstName,
-          lastName: params.lastName,
-          email: params.email,
-          password: params.password,
-          phone: params.phone,
+          firstName: tParams.firstName,
+          lastName: tParams.lastName,
+          email: tParams.email,
+          password: tParams.password,
+          phone: tParams.phone,
         ),
       ).called(1);
       verifyNoMoreInteractions(mockRepository);
@@ -62,26 +62,26 @@ void main() {
 
     when(
       () => mockRepository.signUpWithEmailPassword(
-        firstName: params.firstName,
-        lastName: params.lastName,
-        email: params.email,
-        password: params.password,
-        phone: params.phone,
+        firstName: tParams.firstName,
+        lastName: tParams.lastName,
+        email: tParams.email,
+        password: tParams.password,
+        phone: tParams.phone,
       ),
     ).thenAnswer((_) async => const Left(failure));
 
     // act
-    final result = await usecase(params);
+    final result = await usecase(tParams);
 
     // assert
     expect(result, const Left(failure));
     verify(
       () => mockRepository.signUpWithEmailPassword(
-        firstName: params.firstName,
-        lastName: params.lastName,
-        email: params.email,
-        password: params.password,
-        phone: params.phone,
+        firstName: tParams.firstName,
+        lastName: tParams.lastName,
+        email: tParams.email,
+        password: tParams.password,
+        phone: tParams.phone,
       ),
     ).called(1);
     verifyNoMoreInteractions(mockRepository);
