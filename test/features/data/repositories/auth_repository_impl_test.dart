@@ -98,6 +98,7 @@ void main() {
           phone: tPhone,
         ),
       ).called(1);
+      verifyNoMoreInteractions(mockAuthRemoteData);
     });
 
     test(
@@ -138,7 +139,7 @@ void main() {
   });
 
   group('loginWithEmailPassword', () {
-    test('should return Right(UserEntity) when sign up succeeds', () async {
+    test('should return Right(UserEntity) when login succeeds', () async {
       // arrange
       when(
         () => mockAuthRemoteData.loginWithEmailPassword(
@@ -215,6 +216,49 @@ void main() {
             provider: tAuthResponse.provider,
           ),
         );
+      },
+    );
+
+    test(
+      'should return Left(Failure) when login throws CacheException',
+      () async {
+        // arrange
+        when(
+          () => mockAuthRemoteData.loginWithEmailPassword(
+            email: tEmail,
+            password: tPassword,
+          ),
+        ).thenAnswer((_) async => tAuthResponse);
+
+        when(
+          () => mockUserLocalData.saveAuth(
+            accessToken: tAuthResponse.accessToken,
+            refreshToken: tAuthResponse.refreshToken,
+            provider: tAuthResponse.provider,
+          ),
+        ).thenThrow(const CacheException('Storage error'));
+
+        // act
+        final result = await repository.loginWithEmailPassword(
+          email: tEmail,
+          password: tPassword,
+        );
+
+        // assert
+        expect(result, equals(left(const Failure('Storage error'))));
+        verifyInOrder([
+          () => mockAuthRemoteData.loginWithEmailPassword(
+            email: tEmail,
+            password: tPassword,
+          ),
+          () => mockUserLocalData.saveAuth(
+            accessToken: tAuthResponse.accessToken,
+            refreshToken: tAuthResponse.refreshToken,
+            provider: tAuthResponse.provider,
+          ),
+        ]);
+        verifyNoMoreInteractions(mockAuthRemoteData);
+        verifyNoMoreInteractions(mockUserLocalData);
       },
     );
   });
