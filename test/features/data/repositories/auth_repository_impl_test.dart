@@ -218,4 +218,100 @@ void main() {
       },
     );
   });
+
+  group('loginWithGoogle', () {
+    test(
+      'should return Right(UserEntity) when google login succeeds',
+      () async {
+        // arrange
+        when(
+          () => mockAuthRemoteData.loginWithGoogle(),
+        ).thenAnswer((_) async => tAuthResponse);
+
+        when(
+          () => mockUserLocalData.saveAuth(
+            accessToken: tAuthResponse.accessToken,
+            refreshToken: tAuthResponse.refreshToken,
+            provider: tAuthResponse.provider,
+          ),
+        ).thenAnswer((_) async {});
+
+        // act
+        final result = await repository.loginWithGoogle();
+
+        // assert
+        expect(result, equals(right(tUserEntity)));
+        verifyInOrder([
+          () => mockAuthRemoteData.loginWithGoogle(),
+          () => mockUserLocalData.saveAuth(
+            accessToken: tAuthResponse.accessToken,
+            refreshToken: tAuthResponse.refreshToken,
+            provider: tAuthResponse.provider,
+          ),
+        ]);
+        verifyNoMoreInteractions(mockAuthRemoteData);
+        verifyNoMoreInteractions(mockUserLocalData);
+      },
+    );
+  });
+
+  test(
+    'should return Left(Failure) when google login throws ServerException',
+    () async {
+      // arrange
+      when(
+        () => mockAuthRemoteData.loginWithGoogle(),
+      ).thenThrow(const ServerException('Invalid credentials'));
+
+      // act
+      final result = await repository.loginWithGoogle();
+
+      // assert
+      expect(result, equals(left(const Failure('Invalid credentials'))));
+      verify(() => mockAuthRemoteData.loginWithGoogle()).called(1);
+      verifyNever(
+        () => mockUserLocalData.saveAuth(
+          accessToken: tAuthResponse.accessToken,
+          refreshToken: tAuthResponse.refreshToken,
+          provider: tAuthResponse.provider,
+        ),
+      );
+      verifyNoMoreInteractions(mockAuthRemoteData);
+      verifyNoMoreInteractions(mockUserLocalData);
+    },
+  );
+
+  test(
+    'should return Left(Failure) when google login throws CacheException',
+    () async {
+      // arrange
+      when(
+        () => mockAuthRemoteData.loginWithGoogle(),
+      ).thenAnswer((_) async => tAuthResponse);
+
+      when(
+        () => mockUserLocalData.saveAuth(
+          accessToken: tAuthResponse.accessToken,
+          refreshToken: tAuthResponse.refreshToken,
+          provider: tAuthResponse.provider,
+        ),
+      ).thenThrow(const CacheException('Storage error'));
+
+      // act
+      final result = await repository.loginWithGoogle();
+
+      // assert
+      expect(result, equals(left(const Failure('Storage error'))));
+      verifyInOrder([
+        () => mockAuthRemoteData.loginWithGoogle(),
+        () => mockUserLocalData.saveAuth(
+          accessToken: tAuthResponse.accessToken,
+          refreshToken: tAuthResponse.refreshToken,
+          provider: tAuthResponse.provider,
+        ),
+      ]);
+      verifyNoMoreInteractions(mockAuthRemoteData);
+      verifyNoMoreInteractions(mockUserLocalData);
+    },
+  );
 }
