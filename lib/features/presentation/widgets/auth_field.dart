@@ -31,22 +31,24 @@ class AuthField extends StatelessWidget {
       obscureText: isPassword ? isObscure : false,
       onChanged: onChanged,
       keyboardType: keyboardType,
-      validator: validator ?? (value) {
-        if (value!.isEmpty) {
-          return "Please enter your ${hintText.toLowerCase()}";
-        }
+      validator:
+          validator ??
+          (value) {
+            if (value!.isEmpty) {
+              return "Please enter your ${hintText.toLowerCase()}";
+            }
 
-        if (hintText.toLowerCase() == "email" &&
-            !ValidationUtils.isValidEmail(value)) {
-          return "Please enter a valid ${hintText.toLowerCase()}";
-        }
+            if (hintText.toLowerCase() == "email" &&
+                !ValidationUtils.isValidEmail(value)) {
+              return "Please enter a valid ${hintText.toLowerCase()}";
+            }
 
-        if (hintText.toLowerCase() == "phone number" &&
-            !ValidationUtils.isValidPhone(value)) {
-          return "Please enter a valid ${hintText.toLowerCase()}";
-        }
-        return null;
-      },
+            if (hintText.toLowerCase() == "phone number" &&
+                !ValidationUtils.isValidPhone(value)) {
+              return "Please enter a valid ${hintText.toLowerCase()}";
+            }
+            return null;
+          },
       decoration: InputDecoration(
         hintText: hintText,
         suffixIcon: isPassword

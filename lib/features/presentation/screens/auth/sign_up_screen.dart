@@ -1,18 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:password_strength_checker/password_strength_checker.dart';
 import '../../../../core/common/utils/show_snackbar.dart';
 import '../../../../core/common/widgets/app_button.dart';
 import '../../../../core/common/widgets/loader.dart';
+import '../../../../core/routes/app_router.dart';
 import '../../../../core/themes/app_colors.dart';
 import '../../blocs/auth/auth_bloc.dart';
 import '../../widgets/auth_field.dart';
 import '../../widgets/password_field.dart';
-import 'login_screen.dart';
 
 class SignUpScreen extends StatelessWidget {
-  static MaterialPageRoute<dynamic> route() =>
-      MaterialPageRoute(builder: (context) => const SignUpScreen());
   const SignUpScreen({super.key});
 
   @override
@@ -39,26 +38,31 @@ class SignUpScreen extends StatelessWidget {
         ),
       ),
       bottomNavigationBar: Padding(
-        padding: const EdgeInsets.only(left: 70, bottom: 20),
-        child: GestureDetector(
-          onTap: () {
-            Navigator.pushReplacement(context, LoginScreen.route());
-          },
-          child: RichText(
-            text: TextSpan(
-              text: 'Already have an account? ',
-              style: Theme.of(context).textTheme.titleSmall,
-              children: [
-                TextSpan(
-                  text: 'Login',
-                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    color: AppColor.green,
-                    fontWeight: FontWeight.bold,
-                  ),
+        padding: EdgeInsets.only(bottom: 20),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            GestureDetector(
+              onTap: () {
+                context.go(AppRouter.login);
+              },
+              child: RichText(
+                text: TextSpan(
+                  text: 'Already have an account? ',
+                  style: Theme.of(context).textTheme.titleSmall,
+                  children: [
+                    TextSpan(
+                      text: 'Login',
+                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        color: AppColor.green,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
                 ),
-              ],
+              ),
             ),
-          ),
+          ],
         ),
       ),
     );
@@ -110,11 +114,10 @@ class _SignUpFormState extends State<SignUpForm> {
   Widget build(BuildContext context) {
     return Form(
       key: _formkey,
-      child: 
-      Column(
-      // ListView(
-      //   shrinkWrap: true,
-      //   physics: const NeverScrollableScrollPhysics(),
+      child: Column(
+        // ListView(
+        //   shrinkWrap: true,
+        //   physics: const NeverScrollableScrollPhysics(),
         children: [
           AuthField(
             key: const Key('firstNameField'),
@@ -178,11 +181,11 @@ class _SignUpFormState extends State<SignUpForm> {
               if (state is AuthFailure) {
                 showSnackBar(context, state.message);
               } else if (state is AuthSuccess) {
-                showSnackBar(context, state.message);
-                Navigator.pushReplacement(
+                showSnackBar(
                   context,
-                  MaterialPageRoute(builder: (context) => const LoginScreen()),
+                  "Successfully signed up! Please enter your email and password to login.",
                 );
+                context.go(AppRouter.login);
               }
             },
             builder: (context, state) {
