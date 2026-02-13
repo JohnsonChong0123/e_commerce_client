@@ -1,4 +1,4 @@
-import '../../../core/entities/user_entity.dart';
+import '../../domain/entity/user_entity.dart';
 
 class UserModel extends UserEntity {
   const UserModel({
@@ -42,5 +42,20 @@ class UserModel extends UserEntity {
       'longitude': longitude,
       'wallet': wallet,
     };
+  }
+
+  UserEntity toEntity() {
+    return UserEntity(
+      userId: userId,
+      firstName: firstName,
+      lastName: lastName,
+      email: email,
+      phone: phone,
+      image: image,
+      address: address,
+      latitude: latitude,
+      longitude: longitude,
+      wallet: wallet,
+    );
   }
 }

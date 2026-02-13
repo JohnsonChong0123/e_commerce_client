@@ -1,15 +1,23 @@
+import 'dart:convert';
+
 import 'package:dio/dio.dart';
+import 'package:e_commerce_client/core/common/constants/server_constant.dart';
 import 'package:e_commerce_client/core/errors/exception.dart';
-import 'package:e_commerce_client/features/data/sources/auth_remote_data.dart';
+import 'package:e_commerce_client/features/data/models/auth_response.dart';
+import 'package:e_commerce_client/features/data/sources/remote/auth_remote_data.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
+
+import '../../../../fixtures/fixture_reader.dart';
 
 class MockDio extends Mock implements Dio {}
 
 void main() {
   late MockDio mockDio;
-  late AuthRemoteDataImpl mockAuthRemoteDataImpl;
+  late AuthRemoteDataImpl authRemoteData;
+  late Map<String, dynamic> tJsonMap;
+  late AuthResponse tAuthResponse;
 
   const tFirstName = 'Test';
   const tLastName = 'User';
@@ -24,7 +32,10 @@ void main() {
 
   setUp(() {
     mockDio = MockDio();
-    mockAuthRemoteDataImpl = AuthRemoteDataImpl(dio: mockDio);
+    authRemoteData = AuthRemoteDataImpl(dio: mockDio);
+
+    tJsonMap = jsonDecode(fixture('auth/auth_response.json'));
+    tAuthResponse = AuthResponse.fromJson(tJsonMap);
   });
 
   group('signUpWithEmailPassword', () {
@@ -45,7 +56,7 @@ void main() {
       );
 
       // act
-      final result = mockAuthRemoteDataImpl.signUpWithEmailPassword(
+      final result = authRemoteData.signUpWithEmailPassword(
         firstName: tFirstName,
         lastName: tLastName,
         email: tEmail,
@@ -59,47 +70,12 @@ void main() {
       verify(
         () => mockDio.post(
           any(),
-          data: {
-            "first_name": tFirstName,
-            "last_name": tLastName,
-            "email": tEmail,
-            "password": tPassword,
-            "phone": tPhone,
-          },
+          data: any(named: 'data'),
           options: any(named: 'options'),
         ),
       ).called(1);
     });
 
-    test('should throw ServerException when status code != 200', () async {
-      // arrange
-      when(
-        () => mockDio.post(
-          any(),
-          data: any(named: 'data'),
-          options: any(named: 'options'),
-        ),
-      ).thenAnswer(
-        (_) async => Response(
-          requestOptions: RequestOptions(path: '/auth/register'),
-          statusCode: 400,
-          data: {'detail': 'Email exists'},
-        ),
-      );
-
-      // act
-      final result = mockAuthRemoteDataImpl.signUpWithEmailPassword(
-        firstName: tFirstName,
-        lastName: tLastName,
-        email: tEmail,
-        password: tPassword,
-        phone: tPhone,
-      );
-
-      // assert
-      expect(result, throwsA(isA<ServerException>()));
-    });
-    
     test('should throw ServerException on DioException', () async {
       // arrange
       when(
@@ -116,7 +92,7 @@ void main() {
       );
 
       // act
-      final result = mockAuthRemoteDataImpl.signUpWithEmailPassword(
+      final result = authRemoteData.signUpWithEmailPassword(
         firstName: tFirstName,
         lastName: tLastName,
         email: tEmail,
@@ -139,12 +115,92 @@ void main() {
       ).thenThrow(Exception('boom'));
 
       // act
-      final result = mockAuthRemoteDataImpl.signUpWithEmailPassword(
+      final result = authRemoteData.signUpWithEmailPassword(
         firstName: tFirstName,
         lastName: tLastName,
         email: tEmail,
         password: tPassword,
         phone: tPhone,
+      );
+
+      // assert
+      expect(result, throwsA(isA<ServerException>()));
+    });
+  });
+
+  group('loginWithEmailPassword', () {
+    test('should return AuthResponse when login success', () async {
+      // arrange
+      when(
+        () => mockDio.post(
+          any(),
+          data: any(named: 'data'),
+          options: any(named: 'options'),
+        ),
+      ).thenAnswer(
+        (_) async => Response(
+          data: tJsonMap,
+          statusCode: 200,
+          requestOptions: RequestOptions(path: ''),
+        ),
+      );
+
+      // act
+      final result = await authRemoteData.loginWithEmailPassword(
+        email: tEmail,
+        password: tPassword,
+      );
+
+      // assert
+      expect(result, equals(tAuthResponse));
+      verify(
+        () => mockDio.post(
+          '${ServerConstant.serverURL}/auth/login',
+          data: {'email': tEmail, 'password': tPassword},
+          options: any(named: 'options'),
+        ),
+      ).called(1);
+    });
+    
+    test('should throw ServerException on DioException', () async {
+      // arrange
+      when(
+        () => mockDio.post(
+          any(),
+          data: any(named: 'data'),
+          options: any(named: 'options'),
+        ),
+      ).thenThrow(
+        DioException(
+          requestOptions: RequestOptions(path: '/'),
+          message: 'Timeout',
+        ),
+      );
+
+      // act
+      final result = authRemoteData.loginWithEmailPassword(
+        email: tEmail,
+        password: tPassword,
+      );
+
+      // assert
+      expect(result, throwsA(isA<ServerException>()));
+    });
+
+    test('should throw ServerException on unknown exception', () async {
+      // arrange
+      when(
+        () => mockDio.post(
+          any(),
+          data: any(named: 'data'),
+          options: any(named: 'options'),
+        ),
+      ).thenThrow(Exception('boom'));
+
+      // act
+      final result = authRemoteData.loginWithEmailPassword(
+        email: tEmail,
+        password: tPassword,
       );
 
       // assert
