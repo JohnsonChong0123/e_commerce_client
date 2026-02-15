@@ -8,7 +8,6 @@ class MockDioException extends Mock implements DioException {}
 class MockErrorInterceptorHandler extends Mock
     implements ErrorInterceptorHandler {}
 
-
 void main() {
   late ErrorInterceptor errorInterceptor;
   late MockErrorInterceptorHandler mockErrorInterceptorHandler;
@@ -20,6 +19,78 @@ void main() {
   setUp(() {
     errorInterceptor = ErrorInterceptor();
     mockErrorInterceptorHandler = MockErrorInterceptorHandler();
+  });
+
+  test('should return "Invalid request" for 400 status code', () {
+    // arrange
+    final dioException = DioException(
+      requestOptions: RequestOptions(),
+      response: Response(requestOptions: RequestOptions(), statusCode: 400),
+    );
+
+    // act
+    errorInterceptor.onError(dioException, mockErrorInterceptorHandler);
+
+    // assert
+    verify(
+      () => mockErrorInterceptorHandler.reject(
+        any(
+          that: isA<DioException>().having(
+            (e) => (e.error as ServerException).message,
+            'message',
+            'Invalid request',
+          ),
+        ),
+      ),
+    ).called(1);
+  });
+
+  test('should return "Invalid email or password" for 401 status code', () {
+    // arrange
+    final dioException = DioException(
+      requestOptions: RequestOptions(),
+      response: Response(requestOptions: RequestOptions(), statusCode: 401),
+    );
+
+    // act
+    errorInterceptor.onError(dioException, mockErrorInterceptorHandler);
+
+    // assert
+    verify(
+      () => mockErrorInterceptorHandler.reject(
+        any(
+          that: isA<DioException>().having(
+            (e) => (e.error as ServerException).message,
+            'message',
+            'Invalid email or password',
+          ),
+        ),
+      ),
+    ).called(1);
+  });
+
+  test('should return "Resource not found" for 404 status code', () {
+    // arrange
+    final dioException = DioException(
+      requestOptions: RequestOptions(),
+      response: Response(requestOptions: RequestOptions(), statusCode: 404),
+    );
+
+    // act
+    errorInterceptor.onError(dioException, mockErrorInterceptorHandler);
+
+    // assert
+    verify(
+      () => mockErrorInterceptorHandler.reject(
+        any(
+          that: isA<DioException>().having(
+            (e) => (e.error as ServerException).message,
+            'message',
+            'Resource not found',
+          ),
+        ),
+      ),
+    ).called(1);
   });
 
   test('should return "Email has already been used" for 409 status code', () {
@@ -40,6 +111,55 @@ void main() {
             (e) => (e.error as ServerException).message,
             'message',
             'Email has already been used',
+          ),
+        ),
+      ),
+    ).called(1);
+  });
+
+  test('should return "Server error, please try again later" message for 500 status code', () {
+    // arrange
+    final dioException = DioException(
+      requestOptions: RequestOptions(),
+      response: Response(requestOptions: RequestOptions(), statusCode: 500),
+      message: 'Server error',
+    );
+
+    // act
+    errorInterceptor.onError(dioException, mockErrorInterceptorHandler);
+
+    // assert
+    verify(
+      () => mockErrorInterceptorHandler.reject(
+        any(
+          that: isA<DioException>().having(
+            (e) => (e.error as ServerException).message,
+            'message',
+            'Server error, please try again later',
+          ),
+        ),
+      ),
+    ).called(1);
+  });
+
+  test('should return default error message when no response is provided', () {
+    // arrange
+    final dioException = DioException(
+      requestOptions: RequestOptions(),
+      message: 'Network error',
+    );
+
+    // act
+    errorInterceptor.onError(dioException, mockErrorInterceptorHandler);
+
+    // assert
+    verify(
+      () => mockErrorInterceptorHandler.reject(
+        any(
+          that: isA<DioException>().having(
+            (e) => (e.error as ServerException).message,
+            'message',
+            'Network error',
           ),
         ),
       ),
