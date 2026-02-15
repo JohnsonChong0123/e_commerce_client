@@ -1,5 +1,7 @@
 part of 'auth_bloc.dart';
 
+enum AuthLoadingType { normal, google }
+
 sealed class AuthState extends Equatable {
   const AuthState();
 
@@ -9,7 +11,14 @@ sealed class AuthState extends Equatable {
 
 final class AuthInitial extends AuthState {}
 
-final class AuthLoading extends AuthState {}
+class AuthLoading extends AuthState {
+  final AuthLoadingType type;
+
+  const AuthLoading({this.type = AuthLoadingType.normal});
+
+  @override
+  List<Object> get props => [type];
+}
 
 final class AuthFailure extends AuthState {
   final String message;

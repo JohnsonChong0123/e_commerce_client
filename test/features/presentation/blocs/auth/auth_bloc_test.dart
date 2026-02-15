@@ -2,6 +2,7 @@ import 'package:bloc_test/bloc_test.dart';
 import 'package:e_commerce_client/features/domain/entity/user_entity.dart';
 import 'package:e_commerce_client/core/errors/failure.dart';
 import 'package:e_commerce_client/core/usecase/usecase.dart';
+import 'package:e_commerce_client/features/domain/usecases/auth/google_login.dart';
 import 'package:e_commerce_client/features/domain/usecases/auth/login.dart';
 import 'package:e_commerce_client/features/domain/usecases/auth/sign_up.dart';
 import 'package:e_commerce_client/features/presentation/blocs/auth/auth_bloc.dart';
@@ -13,9 +14,12 @@ class MockSignUp extends Mock implements SignUp {}
 
 class MockLogin extends Mock implements Login {}
 
+class MockGoogleLogin extends Mock implements GoogleLogin {}
+
 void main() {
   late MockSignUp mockSignUp;
   late MockLogin mockLogin;
+  late MockGoogleLogin mockGoogleLogin;
   late AuthBloc authBloc;
 
   const tFirstName = 'Test';
@@ -52,7 +56,12 @@ void main() {
   setUp(() {
     mockSignUp = MockSignUp();
     mockLogin = MockLogin();
-    authBloc = AuthBloc(signUp: mockSignUp, login: mockLogin);
+    mockGoogleLogin = MockGoogleLogin();
+    authBloc = AuthBloc(
+      signUp: mockSignUp,
+      login: mockLogin,
+      googleLogin: mockGoogleLogin,
+    );
   });
 
   group('AuthBloc SignUp', () {
@@ -112,12 +121,8 @@ void main() {
         ).thenAnswer((_) async => Right(tUserEntity));
         return authBloc;
       },
-      act: (bloc) => bloc.add(
-        const AuthLogin(
-          email: tEmail,
-          password: tPassword,
-        ),
-      ),
+      act: (bloc) =>
+          bloc.add(const AuthLogin(email: tEmail, password: tPassword)),
       expect: () => [AuthLoading(), AuthSuccess()],
       verify: (_) {
         verify(() => mockLogin(any())).called(1);
@@ -132,16 +137,45 @@ void main() {
         ).thenAnswer((_) async => const Left(Failure('Login failed')));
         return authBloc;
       },
-      act: (bloc) => bloc.add(
-        const AuthLogin(
-          email: tEmail,
-          password: tPassword,
-        ),
-      ),
+      act: (bloc) =>
+          bloc.add(const AuthLogin(email: tEmail, password: tPassword)),
       expect: () => [AuthLoading(), const AuthFailure('Login failed')],
       verify: (_) {
         verify(() => mockLogin(any())).called(1);
       },
     );
+  });
+
+  group('AuthBloc GoogleLogin', () {
+    blocTest<AuthBloc, AuthState>(
+      'should emit [AuthLoading, AuthSuccess] when google login succeeds',
+      build: () {
+        when(
+          () => mockGoogleLogin(NoParams()),
+        ).thenAnswer((_) async => Right(tUserEntity));
+        return authBloc;
+      },
+      act: (bloc) => bloc.add(const AuthGoogleLogin()),
+      expect: () => [AuthLoading(type: AuthLoadingType.google), AuthSuccess()],
+      verify: (_) {
+        verify(() => mockGoogleLogin(NoParams())).called(1);
+      },
+    );
+
+    // blocTest<AuthBloc, AuthState>(
+    //   'should emit [AuthLoading, AuthFailure] when login fails',
+    //   build: () {
+    //     when(
+    //       () => mockLogin(any()),
+    //     ).thenAnswer((_) async => const Left(Failure('Login failed')));
+    //     return authBloc;
+    //   },
+    //   act: (bloc) =>
+    //       bloc.add(const AuthLogin(email: tEmail, password: tPassword)),
+    //   expect: () => [AuthLoading(), const AuthFailure('Login failed')],
+    //   verify: (_) {
+    //     verify(() => mockLogin(any())).called(1);
+    //   },
+    // );
   });
 }

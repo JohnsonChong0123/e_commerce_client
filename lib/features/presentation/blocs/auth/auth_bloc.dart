@@ -1,6 +1,8 @@
+import 'package:e_commerce_client/core/usecase/usecase.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../domain/usecases/auth/google_login.dart';
 import '../../../domain/usecases/auth/login.dart';
 import '../../../domain/usecases/auth/sign_up.dart';
 
@@ -10,13 +12,19 @@ part 'auth_state.dart';
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final SignUp _signUp;
   final Login _login;
+  final GoogleLogin _googleLogin;
 
-  AuthBloc({required SignUp signUp, required Login login})
-    : _signUp = signUp,
-      _login = login,
-      super(AuthInitial()) {
+  AuthBloc({
+    required SignUp signUp,
+    required Login login,
+    required GoogleLogin googleLogin,
+  }) : _signUp = signUp,
+       _login = login,
+       _googleLogin = googleLogin,
+       super(AuthInitial()) {
     on<AuthSignUp>(_onAuthSignUp);
     on<AuthLogin>(_onAuthLogin);
+    on<AuthGoogleLogin>(_onAuthGoogleLogin);
   }
 
   void _onAuthSignUp(AuthSignUp event, Emitter<AuthState> emit) async {
@@ -33,12 +41,20 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     res.fold((l) => emit(AuthFailure(l.message)), (_) => emit(AuthSuccess()));
   }
 
-  
   void _onAuthLogin(AuthLogin event, Emitter<AuthState> emit) async {
     emit(AuthLoading());
     final res = await _login(
       LoginParams(email: event.email, password: event.password),
     );
+    res.fold((l) => emit(AuthFailure(l.message)), (_) => emit(AuthSuccess()));
+  }
+
+  void _onAuthGoogleLogin(
+    AuthGoogleLogin event,
+    Emitter<AuthState> emit,
+  ) async {
+    emit(AuthLoading(type: AuthLoadingType.google));
+    final res = await _googleLogin(NoParams());
     res.fold((l) => emit(AuthFailure(l.message)), (_) => emit(AuthSuccess()));
   }
 }
