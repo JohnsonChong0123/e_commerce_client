@@ -1,7 +1,6 @@
 import 'dart:convert';
 
 import 'package:dio/dio.dart';
-import 'package:e_commerce_client/core/common/constants/server_constant.dart';
 import 'package:e_commerce_client/core/errors/exception.dart';
 import 'package:e_commerce_client/core/external/google/google_auth_service.dart';
 import 'package:e_commerce_client/features/data/models/auth_response.dart';
@@ -163,7 +162,7 @@ void main() {
       expect(result, equals(tAuthResponse));
       verify(
         () => mockDio.post(
-          '${ServerConstant.serverURL}/auth/login', // TODO: Remove ${ServerConstant.serverURL}
+          '/auth/login',
           data: {'email': tEmail, 'password': tPassword},
           options: any(named: 'options'),
         ),
