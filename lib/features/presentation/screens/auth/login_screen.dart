@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:sign_button/sign_button.dart';
 import '../../../../core/common/widgets/app_button.dart';
 import '../../../../core/common/widgets/loader.dart';
 import '../../../../core/common/utils/show_snackbar.dart';
@@ -37,6 +38,40 @@ class LoginScreen extends StatelessWidget {
                 },
               ),
               const SizedBox(height: 50),
+              BlocConsumer<AuthBloc, AuthState>(
+                listener: (context, state) {
+                  if (state is AuthFailure) {
+                    showSnackBar(context, state.message);
+                  } else if (state is AuthSuccess) {
+                    showSnackBar(context, "Login Successful");
+                    context.go(AppRouter.home);
+                  }
+                },
+                builder: (context, state) {
+                  final isGoogleLoading =
+                      state is AuthLoading &&
+                      state.type == AuthLoadingType.google;
+
+                  if (isGoogleLoading) {
+                    return const Loader();
+                  } else {
+                    return SizedBox(
+                      width: double.infinity,
+                      height: 50,
+                      child: SignInButton(
+                        elevation: 2,
+                        buttonType: ButtonType.google,
+                        width: double.infinity,
+                        padding: 10,
+                        onPressed: () async {
+                          context.read<AuthBloc>().add(AuthGoogleLogin());
+                        },
+                      ),
+                    );
+                  }
+                },
+              ),
+              const SizedBox(height: 20),
             ],
           ),
         ),
@@ -128,7 +163,9 @@ class _LoginFormState extends State<LoginForm> {
               }
             },
             builder: (context, state) {
-              if (state is AuthLoading) {
+              final isLoginLoading =
+                  state is AuthLoading && state.type == AuthLoadingType.normal;
+              if (isLoginLoading) {
                 return const Loader();
               } else {
                 return AppButton(
