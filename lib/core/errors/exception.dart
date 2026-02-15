@@ -13,3 +13,11 @@ class CacheException implements Exception {
   @override
   String toString() => 'CacheException: $message';
 }
+
+class GoogleAuthException implements Exception {
+  final String message;
+  GoogleAuthException(this.message);
+  
+  @override
+  String toString() => 'GoogleAuthException: $message';
+}
