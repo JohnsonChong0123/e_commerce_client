@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import '../../../../core/errors/exception.dart';
+import '../../../../core/external/google/google_auth_service.dart';
 import '../../models/auth_response.dart';
 
 abstract interface class AuthRemoteData {
@@ -15,11 +16,14 @@ abstract interface class AuthRemoteData {
     required String email,
     required String password,
   });
+
+  Future<AuthResponse> loginWithGoogle();
 }
 
 class AuthRemoteDataImpl implements AuthRemoteData {
   final Dio dio;
-  AuthRemoteDataImpl({required this.dio});
+  final GoogleAuthService googleAuthService;
+  AuthRemoteDataImpl({required this.dio, required this.googleAuthService});
   @override
   Future<void> signUpWithEmailPassword({
     required String firstName,
@@ -41,7 +45,6 @@ class AuthRemoteDataImpl implements AuthRemoteData {
         },
       );
     } on DioException catch (e) {
-      print(e);
       if (e.error is ServerException) {
         throw e.error as ServerException;
       }
@@ -62,6 +65,28 @@ class AuthRemoteDataImpl implements AuthRemoteData {
         options: Options(headers: {'Content-Type': 'application/json'}),
         data: {"email": email, "password": password},
       );
+      return AuthResponse.fromJson(response.data);
+    } on DioException catch (e) {
+      if (e.error is ServerException) {
+        throw e.error as ServerException;
+      }
+      throw ServerException('An unexpected error occurred');
+    } catch (e) {
+      throw ServerException(e.toString());
+    }
+  }
+
+  @override
+  Future<AuthResponse> loginWithGoogle() async {
+    try {
+      final tokenId = await googleAuthService.getIdToken();
+
+      final response = await dio.post(
+        '/auth/google',
+        options: Options(headers: {'Content-Type': 'application/json'}),
+        data: {"id_token": tokenId},
+      );
+
       return AuthResponse.fromJson(response.data);
     } on DioException catch (e) {
       if (e.error is ServerException) {
