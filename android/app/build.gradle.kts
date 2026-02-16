@@ -29,7 +29,7 @@ android {
     }
 
     signingConfigs {
-        create("debug") {
+        getByName("debug") {
             if (keystorePropertiesFile.exists()) {
                 keyAlias = keystoreProperties["keyAlias"] as String
                 keyPassword = keystoreProperties["keyPassword"] as String
