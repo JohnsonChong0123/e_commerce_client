@@ -13,8 +13,12 @@ void main() async {
   await initServiceLocator();
   runApp(
     BlocProvider(
-      create: (context) =>
-          AuthBloc(signUp: sl(), login: sl(), googleLogin: sl()),
+      create: (context) => AuthBloc(
+        signUp: sl(),
+        login: sl(),
+        googleLogin: sl(),
+        facebookLogin: sl(),
+      ),
       child: const MyApp(),
     ),
   );
