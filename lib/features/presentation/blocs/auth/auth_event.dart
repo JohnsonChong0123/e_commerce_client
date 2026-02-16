@@ -33,3 +33,7 @@ final class AuthLogin extends AuthEvent {
 final class AuthGoogleLogin extends AuthEvent {
   const AuthGoogleLogin();
 }
+
+final class AuthFacebookLogin extends AuthEvent {
+  const AuthFacebookLogin();
+}

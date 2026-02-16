@@ -2,6 +2,7 @@ import 'package:bloc_test/bloc_test.dart';
 import 'package:e_commerce_client/features/domain/entity/user_entity.dart';
 import 'package:e_commerce_client/core/errors/failure.dart';
 import 'package:e_commerce_client/core/usecase/usecase.dart';
+import 'package:e_commerce_client/features/domain/usecases/auth/facebook_login.dart';
 import 'package:e_commerce_client/features/domain/usecases/auth/google_login.dart';
 import 'package:e_commerce_client/features/domain/usecases/auth/login.dart';
 import 'package:e_commerce_client/features/domain/usecases/auth/sign_up.dart';
@@ -16,10 +17,13 @@ class MockLogin extends Mock implements Login {}
 
 class MockGoogleLogin extends Mock implements GoogleLogin {}
 
+class MockFacebookLogin extends Mock implements FacebookLogin {}
+
 void main() {
   late MockSignUp mockSignUp;
   late MockLogin mockLogin;
   late MockGoogleLogin mockGoogleLogin;
+  late MockFacebookLogin mockFacebookLogin;
   late AuthBloc authBloc;
 
   const tFirstName = 'Test';
@@ -57,10 +61,12 @@ void main() {
     mockSignUp = MockSignUp();
     mockLogin = MockLogin();
     mockGoogleLogin = MockGoogleLogin();
+    mockFacebookLogin = MockFacebookLogin();
     authBloc = AuthBloc(
       signUp: mockSignUp,
       login: mockLogin,
       googleLogin: mockGoogleLogin,
+      facebookLogin: mockFacebookLogin,
     );
   });
 
@@ -177,6 +183,41 @@ void main() {
       ],
       verify: (_) {
         verify(() => mockGoogleLogin(NoParams())).called(1);
+      },
+    );
+  });
+
+  group('AuthBloc FacebookLogin', () {
+    blocTest<AuthBloc, AuthState>(
+      'should emit [AuthLoading, AuthSuccess] when facebook login succeeds',
+      build: () {
+        when(
+          () => mockFacebookLogin(NoParams()),
+        ).thenAnswer((_) async => Right(tUserEntity));
+        return authBloc;
+      },
+      act: (bloc) => bloc.add(const AuthFacebookLogin()),
+      expect: () => [AuthLoading(type: AuthLoadingType.facebook), AuthSuccess()],
+      verify: (_) {
+        verify(() => mockFacebookLogin(NoParams())).called(1);
+      },
+    );
+
+    blocTest<AuthBloc, AuthState>(
+      'should emit [AuthLoading, AuthFailure] when facebook login fails',
+      build: () {
+        when(
+          () => mockFacebookLogin(NoParams()),
+        ).thenAnswer((_) async => const Left(Failure('Facebook login failed')));
+        return authBloc;
+      },
+      act: (bloc) => bloc.add(const AuthFacebookLogin()),
+      expect: () => [
+        AuthLoading(type: AuthLoadingType.facebook),
+        const AuthFailure('Facebook login failed'),
+      ],
+      verify: (_) {
+        verify(() => mockFacebookLogin(NoParams())).called(1);
       },
     );
   });

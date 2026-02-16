@@ -1,6 +1,6 @@
 part of 'auth_bloc.dart';
 
-enum AuthLoadingType { normal, google }
+enum AuthLoadingType { normal, google, facebook }
 
 sealed class AuthState extends Equatable {
   const AuthState();

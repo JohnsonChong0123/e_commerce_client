@@ -72,6 +72,39 @@ class LoginScreen extends StatelessWidget {
                 },
               ),
               const SizedBox(height: 20),
+              BlocConsumer<AuthBloc, AuthState>(
+                listener: (context, state) {
+                  if (state is AuthFailure) {
+                    showSnackBar(context, state.message);
+                  } else if (state is AuthSuccess) {
+                    showSnackBar(context, "Login Successful");
+                    context.go(AppRouter.home);
+                  }
+                },
+                builder: (context, state) {
+                  final isFacebookLoading =
+                      state is AuthLoading &&
+                      state.type == AuthLoadingType.facebook;
+
+                  if (isFacebookLoading) {
+                    return const Loader();
+                  } else {
+                    return SizedBox(
+                      width: double.infinity,
+                      height: 50,
+                      child: SignInButton(
+                        elevation: 2,
+                        buttonType: ButtonType.facebook,
+                        width: double.infinity,
+                        padding: 10,
+                        onPressed: () async {
+                          context.read<AuthBloc>().add(AuthFacebookLogin());
+                        },
+                      ),
+                    );
+                  }
+                },
+              ),
             ],
           ),
         ),
