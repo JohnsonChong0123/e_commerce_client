@@ -17,4 +17,6 @@ abstract interface class AuthRepository {
   });
 
   Future<Either<Failure, UserEntity>> loginWithGoogle();
+
+  Future<Either<Failure, UserEntity>> loginWithFacebook();
 }
