@@ -1,8 +1,10 @@
 name: Flutter CI
+
 on:
   push:
     branches: [ main ]
-  pull_request:
+  pull_request:       
+
 jobs:
   debug_build:
     name: Debug Build
@@ -14,6 +16,14 @@ jobs:
         uses: subosito/flutter-action@v2
         with:
           flutter-version: 3.38.9
+      
+      - name: Cache Flutter dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.pub-cache
+            ~/.gradle/caches
+          key: ${{ runner.os }}-flutter-${{ hashFiles('**/pubspec.lock') }}
       
       - name: Decode and Setup Keystore
         run: |
@@ -42,7 +52,7 @@ jobs:
         run: flutter test
       
       - name: Build Debug APK
-        run: flutter build apk --debug
+        run: flutter build apk --debug -v
       
       - name: Upload APK
         uses: actions/upload-artifact@v4
