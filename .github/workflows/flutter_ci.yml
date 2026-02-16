@@ -1,0 +1,40 @@
+name: Flutter CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+
+jobs:
+  debug_build:
+    name: Debug Build
+    runs-on: ubuntu-latest
+    steps:
+      
+      - uses: actions/checkout@v4
+
+      
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: 3.38.9
+
+      
+      - name: Inject Facebook Secrets
+        run: |
+          sed -i '/FACEBOOK_APP_ID/d' android/gradle.properties
+          sed -i '/FACEBOOK_CLIENT_TOKEN/d' android/gradle.properties
+          echo "FACEBOOK_APP_ID=${{ secrets.FACEBOOK_APP_ID }}" >> android/gradle.properties
+          echo "FACEBOOK_CLIENT_TOKEN=${{ secrets.FACEBOOK_CLIENT_TOKEN }}" >> android/gradle.properties
+
+      
+      - name: Install Dependencies
+        run: flutter pub get
+
+      
+      - name: Run Tests
+        run: flutter test
+
+
+      - name: Build Debug APK
+        run: flutter build apk --debug
