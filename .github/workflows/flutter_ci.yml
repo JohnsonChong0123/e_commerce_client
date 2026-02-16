@@ -3,7 +3,6 @@ on:
   push:
     branches: [ main ]
   pull_request:
-
 jobs:
   debug_build:
     name: Debug Build
@@ -15,6 +14,14 @@ jobs:
         uses: subosito/flutter-action@v2
         with:
           flutter-version: 3.38.9
+      
+      - name: Decode and Setup Keystore
+        run: |
+          echo "${{ secrets.DEBUG_KEYSTORE_BASE64 }}" | base64 --decode > android/app/debug.keystore
+          echo "storePassword=${{ secrets.KEYSTORE_PASSWORD }}" > android/key.properties
+          echo "keyPassword=${{ secrets.KEY_PASSWORD }}" >> android/key.properties
+          echo "keyAlias=${{ secrets.KEY_ALIAS }}" >> android/key.properties
+          echo "storeFile=debug.keystore" >> android/key.properties
       
       - name: Inject Facebook Secrets
         run: |
