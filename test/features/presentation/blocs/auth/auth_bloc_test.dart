@@ -162,20 +162,22 @@ void main() {
       },
     );
 
-    // blocTest<AuthBloc, AuthState>(
-    //   'should emit [AuthLoading, AuthFailure] when login fails',
-    //   build: () {
-    //     when(
-    //       () => mockLogin(any()),
-    //     ).thenAnswer((_) async => const Left(Failure('Login failed')));
-    //     return authBloc;
-    //   },
-    //   act: (bloc) =>
-    //       bloc.add(const AuthLogin(email: tEmail, password: tPassword)),
-    //   expect: () => [AuthLoading(), const AuthFailure('Login failed')],
-    //   verify: (_) {
-    //     verify(() => mockLogin(any())).called(1);
-    //   },
-    // );
+    blocTest<AuthBloc, AuthState>(
+      'should emit [AuthLoading, AuthFailure] when google login fails',
+      build: () {
+        when(
+          () => mockGoogleLogin(NoParams()),
+        ).thenAnswer((_) async => const Left(Failure('Google login failed')));
+        return authBloc;
+      },
+      act: (bloc) => bloc.add(const AuthGoogleLogin()),
+      expect: () => [
+        AuthLoading(type: AuthLoadingType.google),
+        const AuthFailure('Google login failed'),
+      ],
+      verify: (_) {
+        verify(() => mockGoogleLogin(NoParams())).called(1);
+      },
+    );
   });
 }
