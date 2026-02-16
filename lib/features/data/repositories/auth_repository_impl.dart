@@ -6,6 +6,7 @@ import '../../domain/repositories/auth/auth_repository.dart';
 import '../sources/local/user_local_data.dart';
 import '../sources/remote/auth_remote_data.dart';
 
+// TODO: Refactor
 class AuthRepositoryImpl implements AuthRepository {
   final AuthRemoteData authRemoteData;
   final UserLocalData userLocalData;
@@ -66,6 +67,25 @@ class AuthRepositoryImpl implements AuthRepository {
   Future<Either<Failure, UserEntity>> loginWithGoogle() async {
     try {
       final auth = await authRemoteData.loginWithGoogle();
+
+      await userLocalData.saveAuth(
+        accessToken: auth.accessToken,
+        refreshToken: auth.refreshToken,
+        provider: auth.provider,
+      );
+
+      return Right(auth.user.toEntity());
+    } on ServerException catch (e) {
+      return Left(Failure(e.message));
+    } on CacheException catch (e) {
+      return Left(Failure(e.message));
+    }
+  }
+
+  @override
+  Future<Either<Failure, UserEntity>> loginWithFacebook() async {
+    try {
+      final auth = await authRemoteData.loginWithFacebook();
 
       await userLocalData.saveAuth(
         accessToken: auth.accessToken,

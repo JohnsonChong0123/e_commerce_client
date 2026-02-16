@@ -1,8 +1,10 @@
 import 'package:dio/dio.dart';
 import '../../../../core/errors/exception.dart';
+import '../../../../core/external/facebook/facebook_auth_service.dart';
 import '../../../../core/external/google/google_auth_service.dart';
 import '../../models/auth_response.dart';
 
+// TODO Refactor
 abstract interface class AuthRemoteData {
   Future<void> signUpWithEmailPassword({
     required String firstName,
@@ -18,12 +20,20 @@ abstract interface class AuthRemoteData {
   });
 
   Future<AuthResponse> loginWithGoogle();
+
+  Future<AuthResponse> loginWithFacebook();
 }
 
 class AuthRemoteDataImpl implements AuthRemoteData {
   final Dio dio;
   final GoogleAuthService googleAuthService;
-  AuthRemoteDataImpl({required this.dio, required this.googleAuthService});
+  final FacebookAuthService facebookAuthService;
+
+  AuthRemoteDataImpl({
+    required this.dio,
+    required this.googleAuthService,
+    required this.facebookAuthService,
+  });
   @override
   Future<void> signUpWithEmailPassword({
     required String firstName,
@@ -85,6 +95,28 @@ class AuthRemoteDataImpl implements AuthRemoteData {
         '/auth/google',
         options: Options(headers: {'Content-Type': 'application/json'}),
         data: {"id_token": tokenId},
+      );
+
+      return AuthResponse.fromJson(response.data);
+    } on DioException catch (e) {
+      if (e.error is ServerException) {
+        throw e.error as ServerException;
+      }
+      throw ServerException('An unexpected error occurred');
+    } catch (e) {
+      throw ServerException(e.toString());
+    }
+  }
+
+  @override
+  Future<AuthResponse> loginWithFacebook() async {
+    try {
+      final accessToken = await facebookAuthService.getAccessToken();
+
+      final response = await dio.post(
+        '/auth/facebook',
+        options: Options(headers: {'Content-Type': 'application/json'}),
+        data: {"access_token": accessToken},
       );
 
       return AuthResponse.fromJson(response.data);

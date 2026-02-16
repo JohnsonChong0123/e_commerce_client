@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:dio/dio.dart';
 import 'package:e_commerce_client/core/errors/exception.dart';
+import 'package:e_commerce_client/core/external/facebook/facebook_auth_service.dart';
 import 'package:e_commerce_client/core/external/google/google_auth_service.dart';
 import 'package:e_commerce_client/features/data/models/auth_response.dart';
 import 'package:e_commerce_client/features/data/sources/remote/auth_remote_data.dart';
@@ -15,9 +16,12 @@ class MockDio extends Mock implements Dio {}
 
 class MockGoogleAuthService extends Mock implements GoogleAuthService {}
 
+class MockFacebookAuthService extends Mock implements FacebookAuthService {}
+
 void main() {
   late MockDio mockDio;
   late MockGoogleAuthService mockGoogleAuthService;
+  late MockFacebookAuthService mockFacebookAuthService;
   late AuthRemoteDataImpl authRemoteData;
   late Map<String, dynamic> tJsonMap;
   late AuthResponse tAuthResponse;
@@ -28,6 +32,8 @@ void main() {
   const tPassword = '123456';
   const tPhone = '0123456789';
 
+  const tIdToken = 'test_id_token_12345';
+
   setUpAll(() {
     dotenv.loadFromString(envString: 'SERVER_URL=https://example.com');
     registerFallbackValue(RequestOptions(path: '/auth/register'));
@@ -36,9 +42,11 @@ void main() {
   setUp(() {
     mockDio = MockDio();
     mockGoogleAuthService = MockGoogleAuthService();
+    mockFacebookAuthService = MockFacebookAuthService();
     authRemoteData = AuthRemoteDataImpl(
       dio: mockDio,
       googleAuthService: mockGoogleAuthService,
+      facebookAuthService: mockFacebookAuthService,
     );
 
     tJsonMap = jsonDecode(fixture('auth/auth_response.json'));
@@ -216,7 +224,6 @@ void main() {
   });
 
   group('loginWithGoogle', () {
-    const tIdToken = 'test_id_token_12345';
     test('should return AuthResponse when google login success', () async {
       // arrange
       when(
@@ -288,6 +295,84 @@ void main() {
 
       // act
       final result = authRemoteData.loginWithGoogle();
+
+      // assert
+      expect(result, throwsA(isA<ServerException>()));
+    });
+  });
+
+  group('loginWithFacebook', () {
+    test('should return AuthResponse when facebook login success', () async {
+      // arrange
+      when(
+        () => mockFacebookAuthService.getAccessToken(),
+      ).thenAnswer((_) async => tIdToken);
+      when(
+        () => mockDio.post(
+          any(),
+          data: any(named: 'data'),
+          options: any(named: 'options'),
+        ),
+      ).thenAnswer(
+        (_) async => Response(
+          data: tJsonMap,
+          statusCode: 200,
+          requestOptions: RequestOptions(path: ''),
+        ),
+      );
+
+      // act
+      final result = await authRemoteData.loginWithFacebook();
+
+      // assert
+      expect(result, equals(tAuthResponse));
+      verify(() => mockFacebookAuthService.getAccessToken()).called(1);
+      verify(
+        () => mockDio.post(
+          '/auth/facebook',
+          data: {'access_token': tIdToken},
+          options: any(named: 'options'),
+        ),
+      ).called(1);
+    });
+
+    test('should throw ServerException on DioException', () async {
+      // arrange
+      when(
+        () => mockFacebookAuthService.getAccessToken(),
+      ).thenAnswer((_) async => tIdToken);
+      when(
+        () => mockDio.post(
+          any(),
+          data: any(named: 'data'),
+          options: any(named: 'options'),
+        ),
+      ).thenThrow(
+        DioException(
+          requestOptions: RequestOptions(path: '/'),
+          message: 'Timeout',
+        ),
+      );
+
+      // act
+      final result = authRemoteData.loginWithFacebook();
+
+      // assert
+      expect(result, throwsA(isA<ServerException>()));
+    });
+
+    test('should throw ServerException on unknown exception', () async {
+      // arrange
+      when(
+        () => mockDio.post(
+          any(),
+          data: any(named: 'data'),
+          options: any(named: 'options'),
+        ),
+      ).thenThrow(Exception('boom'));
+
+      // act
+      final result = authRemoteData.loginWithFacebook();
 
       // assert
       expect(result, throwsA(isA<ServerException>()));

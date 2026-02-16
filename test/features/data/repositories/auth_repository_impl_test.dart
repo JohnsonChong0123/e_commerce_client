@@ -358,4 +358,100 @@ void main() {
       verifyNoMoreInteractions(mockUserLocalData);
     },
   );
+
+  group('loginWithFacebook', () {
+    test(
+      'should return Right(UserEntity) when facebook login succeeds',
+      () async {
+        // arrange
+        when(
+          () => mockAuthRemoteData.loginWithFacebook(),
+        ).thenAnswer((_) async => tAuthResponse);
+
+        when(
+          () => mockUserLocalData.saveAuth(
+            accessToken: tAuthResponse.accessToken,
+            refreshToken: tAuthResponse.refreshToken,
+            provider: tAuthResponse.provider,
+          ),
+        ).thenAnswer((_) async {});
+
+        // act
+        final result = await repository.loginWithFacebook();
+
+        // assert
+        expect(result, equals(right(tUserEntity)));
+        verifyInOrder([
+          () => mockAuthRemoteData.loginWithFacebook(),
+          () => mockUserLocalData.saveAuth(
+            accessToken: tAuthResponse.accessToken,
+            refreshToken: tAuthResponse.refreshToken,
+            provider: tAuthResponse.provider,
+          ),
+        ]);
+        verifyNoMoreInteractions(mockAuthRemoteData);
+        verifyNoMoreInteractions(mockUserLocalData);
+      },
+    );
+  });
+
+  test(
+    'should return Left(Failure) when facebook login throws ServerException',
+    () async {
+      // arrange
+      when(
+        () => mockAuthRemoteData.loginWithFacebook(),
+      ).thenThrow(const ServerException('Invalid credentials'));
+
+      // act
+      final result = await repository.loginWithFacebook();
+
+      // assert
+      expect(result, equals(left(const Failure('Invalid credentials'))));
+      verify(() => mockAuthRemoteData.loginWithFacebook()).called(1);
+      verifyNever(
+        () => mockUserLocalData.saveAuth(
+          accessToken: tAuthResponse.accessToken,
+          refreshToken: tAuthResponse.refreshToken,
+          provider: tAuthResponse.provider,
+        ),
+      );
+      verifyNoMoreInteractions(mockAuthRemoteData);
+      verifyNoMoreInteractions(mockUserLocalData);
+    },
+  );
+
+  test(
+    'should return Left(Failure) when facebook login throws CacheException',
+    () async {
+      // arrange
+      when(
+        () => mockAuthRemoteData.loginWithFacebook(),
+      ).thenAnswer((_) async => tAuthResponse);
+
+      when(
+        () => mockUserLocalData.saveAuth(
+          accessToken: tAuthResponse.accessToken,
+          refreshToken: tAuthResponse.refreshToken,
+          provider: tAuthResponse.provider,
+        ),
+      ).thenThrow(const CacheException('Storage error'));
+
+      // act
+      final result = await repository.loginWithFacebook();
+
+      // assert
+      expect(result, equals(left(const Failure('Storage error'))));
+      verifyInOrder([
+        () => mockAuthRemoteData.loginWithFacebook(),
+        () => mockUserLocalData.saveAuth(
+          accessToken: tAuthResponse.accessToken,
+          refreshToken: tAuthResponse.refreshToken,
+          provider: tAuthResponse.provider,
+        ),
+      ]);
+      verifyNoMoreInteractions(mockAuthRemoteData);
+      verifyNoMoreInteractions(mockUserLocalData);
+    },
+  );
 }
