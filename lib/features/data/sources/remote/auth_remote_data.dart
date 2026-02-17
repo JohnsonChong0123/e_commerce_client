@@ -4,7 +4,6 @@ import '../../../../core/external/facebook/facebook_auth_service.dart';
 import '../../../../core/external/google/google_auth_service.dart';
 import '../../models/auth_response.dart';
 
-// TODO Refactor
 abstract interface class AuthRemoteData {
   Future<void> signUpWithEmailPassword({
     required String firstName,
@@ -54,13 +53,8 @@ class AuthRemoteDataImpl implements AuthRemoteData {
           "phone": phone,
         },
       );
-    } on DioException catch (e) {
-      if (e.error is ServerException) {
-        throw e.error as ServerException;
-      }
-      throw ServerException('An unexpected error occurred');
     } catch (e) {
-      throw ServerException(e.toString());
+      _handleError(e);
     }
   }
 
@@ -76,13 +70,8 @@ class AuthRemoteDataImpl implements AuthRemoteData {
         data: {"email": email, "password": password},
       );
       return AuthResponse.fromJson(response.data);
-    } on DioException catch (e) {
-      if (e.error is ServerException) {
-        throw e.error as ServerException;
-      }
-      throw ServerException('An unexpected error occurred');
     } catch (e) {
-      throw ServerException(e.toString());
+      _handleError(e);
     }
   }
 
@@ -98,13 +87,8 @@ class AuthRemoteDataImpl implements AuthRemoteData {
       );
 
       return AuthResponse.fromJson(response.data);
-    } on DioException catch (e) {
-      if (e.error is ServerException) {
-        throw e.error as ServerException;
-      }
-      throw ServerException('An unexpected error occurred');
     } catch (e) {
-      throw ServerException(e.toString());
+      _handleError(e);
     }
   }
 
@@ -120,13 +104,18 @@ class AuthRemoteDataImpl implements AuthRemoteData {
       );
 
       return AuthResponse.fromJson(response.data);
-    } on DioException catch (e) {
-      if (e.error is ServerException) {
-        throw e.error as ServerException;
-      }
-      throw ServerException('An unexpected error occurred');
     } catch (e) {
-      throw ServerException(e.toString());
+      _handleError(e);
     }
+  }
+
+  Never _handleError(Object e) {
+    if (e is DioException && e.error is ServerException) {
+      throw e.error as ServerException;
+    }
+    if (e is DioException) {
+      throw ServerException('An unexpected error occurred');
+    }
+    throw ServerException(e.toString());
   }
 }

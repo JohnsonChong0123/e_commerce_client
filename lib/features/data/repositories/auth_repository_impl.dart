@@ -3,10 +3,10 @@ import 'package:fpdart/fpdart.dart';
 import '../../domain/entity/user_entity.dart';
 import '../../../core/errors/exception.dart';
 import '../../domain/repositories/auth/auth_repository.dart';
+import '../models/auth_response.dart';
 import '../sources/local/user_local_data.dart';
 import '../sources/remote/auth_remote_data.dart';
 
-// TODO: Refactor
 class AuthRepositoryImpl implements AuthRepository {
   final AuthRemoteData authRemoteData;
   final UserLocalData userLocalData;
@@ -49,17 +49,9 @@ class AuthRepositoryImpl implements AuthRepository {
         password: password,
       );
 
-      await userLocalData.saveAuth(
-        accessToken: auth.accessToken,
-        refreshToken: auth.refreshToken,
-        provider: auth.provider,
-      );
-
-      return Right(auth.user.toEntity());
-    } on ServerException catch (e) {
-      return Left(Failure(e.message));
-    } on CacheException catch (e) {
-      return Left(Failure(e.message));
+      return await _saveAuthAndReturnUser(auth);
+    } catch (e) {
+      return _handleError(e);
     }
   }
 
@@ -68,17 +60,9 @@ class AuthRepositoryImpl implements AuthRepository {
     try {
       final auth = await authRemoteData.loginWithGoogle();
 
-      await userLocalData.saveAuth(
-        accessToken: auth.accessToken,
-        refreshToken: auth.refreshToken,
-        provider: auth.provider,
-      );
-
-      return Right(auth.user.toEntity());
-    } on ServerException catch (e) {
-      return Left(Failure(e.message));
-    } on CacheException catch (e) {
-      return Left(Failure(e.message));
+      return await _saveAuthAndReturnUser(auth);
+    } catch (e) {
+      return _handleError(e);
     }
   }
 
@@ -87,17 +71,32 @@ class AuthRepositoryImpl implements AuthRepository {
     try {
       final auth = await authRemoteData.loginWithFacebook();
 
-      await userLocalData.saveAuth(
-        accessToken: auth.accessToken,
-        refreshToken: auth.refreshToken,
-        provider: auth.provider,
-      );
-
-      return Right(auth.user.toEntity());
-    } on ServerException catch (e) {
-      return Left(Failure(e.message));
-    } on CacheException catch (e) {
-      return Left(Failure(e.message));
+      return await _saveAuthAndReturnUser(auth);
+    } catch (e) {
+      return _handleError(e);
     }
+  }
+
+  // Save auth data and return user entity
+  Future<Either<Failure, UserEntity>> _saveAuthAndReturnUser(
+    AuthResponse auth,
+  ) async {
+    await userLocalData.saveAuth(
+      accessToken: auth.accessToken,
+      refreshToken: auth.refreshToken,
+      provider: auth.provider,
+    );
+    return Right(auth.user.toEntity());
+  }
+
+  // Handle exceptions and convert them to Failure
+  Left<Failure, T> _handleError<T>(Object e) {
+    final message = switch (e) {
+      ServerException() => e.message,
+      CacheException() => e.message,
+      _ => 'Unknown error: $e',
+    };
+
+    return Left(Failure(message));
   }
 }
