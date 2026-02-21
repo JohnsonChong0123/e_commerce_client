@@ -8,6 +8,12 @@ abstract interface class UserLocalData {
     required String refreshToken,
     required String provider,
   });
+
+  Future<String?> getAccessToken();
+
+  Future<String?> getRefreshToken();
+
+  Future<void> setAccessToken(String accessToken);
 }
 
 class UserLocalDataImpl implements UserLocalData {
@@ -27,6 +33,37 @@ class UserLocalDataImpl implements UserLocalData {
         value: refreshToken,
       );
       await flutterSecureStorage.write(key: 'login_provider', value: provider);
+    } catch (e) {
+      throw CacheException(e.toString());
+    }
+  }
+
+  @override
+  Future<String?> getAccessToken() async {
+    try {
+      final accessToken = await flutterSecureStorage.read(key: 'access_token');
+      return accessToken;
+    } catch (e) {
+      throw CacheException(e.toString());
+    }
+  }
+
+  @override
+  Future<String?> getRefreshToken() async {
+    try {
+      final refreshToken = await flutterSecureStorage.read(
+        key: 'refresh_token',
+      );
+      return refreshToken;
+    } catch (e) {
+      throw CacheException(e.toString());
+    }
+  }
+
+  @override
+  Future<void> setAccessToken(String accessToken) async {
+    try {
+      await flutterSecureStorage.write(key: 'access_token', value: accessToken);
     } catch (e) {
       throw CacheException(e.toString());
     }

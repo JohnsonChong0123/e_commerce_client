@@ -77,6 +77,16 @@ class AuthRepositoryImpl implements AuthRepository {
     }
   }
 
+  @override
+  Future<Either<Failure, UserEntity>> getCurrentUser() async {
+    try {
+      final user = await authRemoteData.getCurrentUser();
+      return right(user.toEntity());
+    } on ServerException catch (e) {
+      return left(Failure(e.message));
+    }
+  }
+
   // Save auth data and return user entity
   Future<Either<Failure, UserEntity>> _saveAuthAndReturnUser(
     AuthResponse auth,

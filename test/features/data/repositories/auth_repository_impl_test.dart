@@ -24,8 +24,10 @@ void main() {
   const tEmail = 'test@test.com';
   const tPassword = '123456';
   const tPhone = '0123456789';
+  const tAccessToken = 'access_token';
+  const tRefreshToken = 'refresh_token';
 
-  final tAuthResponse = AuthResponse(
+  const tAuthResponse = AuthResponse(
     user: UserModel(
       userId: '123',
       firstName: tFirstName,
@@ -38,9 +40,22 @@ void main() {
       longitude: 0.0,
       wallet: 0.0,
     ),
-    accessToken: 'access_token',
-    refreshToken: 'refresh_token',
+    accessToken: tAccessToken,
+    refreshToken: tRefreshToken,
     provider: 'provider',
+  );
+
+  const tUserModel = UserModel(
+    userId: '123',
+    firstName: 'Test',
+    lastName: 'User',
+    email: 'test@test.com',
+    phone: '0123456789',
+    image: '',
+    address: '',
+    latitude: 0.0,
+    longitude: 0.0,
+    wallet: 0.0,
   );
 
   const tUserEntity = UserEntity(
@@ -454,4 +469,39 @@ void main() {
       verifyNoMoreInteractions(mockUserLocalData);
     },
   );
+
+  group('getCurrentUser', () {
+    test(
+      'should return Right(UserEntity) when get current user succeeds',
+      () async {
+        // arrange
+        when(
+          () => mockAuthRemoteData.getCurrentUser(),
+        ).thenAnswer((_) async => tUserModel);
+
+        // act
+        final result = await repository.getCurrentUser();
+
+        // assert
+        expect(result, equals(right(tUserEntity)));
+        verify(() => mockAuthRemoteData.getCurrentUser()).called(1);
+        verifyNoMoreInteractions(mockAuthRemoteData);
+      },
+    );
+
+    test('should return Left(Failure) when get current user throws ServerException', () async {
+      // arrange
+      when(
+        () => mockAuthRemoteData.getCurrentUser(),
+      ).thenThrow(const ServerException('No user logged in'));
+
+      // act
+      final result = await repository.getCurrentUser();
+
+      // assert
+      expect(result, equals(left(const Failure('No user logged in'))));
+      verify(() => mockAuthRemoteData.getCurrentUser()).called(1);
+      verifyNoMoreInteractions(mockAuthRemoteData);
+    });
+  });
 }

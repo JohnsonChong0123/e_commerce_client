@@ -5,6 +5,7 @@ import 'package:e_commerce_client/core/errors/exception.dart';
 import 'package:e_commerce_client/core/external/facebook/facebook_auth_service.dart';
 import 'package:e_commerce_client/core/external/google/google_auth_service.dart';
 import 'package:e_commerce_client/features/data/models/auth_response.dart';
+import 'package:e_commerce_client/features/data/models/user_model.dart';
 import 'package:e_commerce_client/features/data/sources/remote/auth_remote_data.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -33,10 +34,11 @@ void main() {
   const tPhone = '0123456789';
 
   const tIdToken = 'test_id_token_12345';
+  const tRefreshToken = 'refresh_token';
 
   setUpAll(() {
     dotenv.loadFromString(envString: 'SERVER_URL=https://example.com');
-    registerFallbackValue(RequestOptions(path: '/auth/register'));
+    registerFallbackValue(RequestOptions(path: '/test'));
   });
 
   setUp(() {
@@ -373,6 +375,128 @@ void main() {
 
       // act
       final result = authRemoteData.loginWithFacebook();
+
+      // assert
+      expect(result, throwsA(isA<ServerException>()));
+    });
+  });
+
+  group('getCurrentUser', () {
+    test('should return UserModel when response code is 200', () async {
+      // arrange
+      final tUserJsonMap = jsonDecode(fixture('user/user.json'));
+      final tUserModel = UserModel.fromJson(tUserJsonMap);
+      when(() => mockDio.get(any())).thenAnswer(
+        (_) async => Response(
+          data: tUserJsonMap,
+          statusCode: 200,
+          requestOptions: RequestOptions(path: ''),
+        ),
+      );
+
+      // act
+      final result = await authRemoteData.getCurrentUser();
+
+      // assert
+      expect(result, equals(tUserModel));
+      verify(() => mockDio.get('/users/me')).called(1);
+    });
+
+    test('should throw ServerException on DioException', () async {
+      // arrange
+      when(() => mockDio.get(any())).thenThrow(
+        DioException(
+          requestOptions: RequestOptions(path: '/'),
+          message: 'Timeout',
+        ),
+      );
+
+      // act
+      final result = authRemoteData.getCurrentUser();
+
+      // assert
+      expect(result, throwsA(isA<ServerException>()));
+    });
+
+    test('should throw ServerException on unknown exception', () async {
+      // arrange
+      when(() => mockDio.get(any())).thenThrow(Exception('boom'));
+
+      // act
+      final result = authRemoteData.getCurrentUser();
+
+      // assert
+      expect(result, throwsA(isA<ServerException>()));
+    });
+  });
+
+  group('refreshToken', () {
+    final tAccessTokenMap = jsonDecode(fixture('auth/access_token.json'));
+    final tNewAccessToken = tAccessTokenMap['access_token'] as String;
+    test('should return new access token when refresh success', () async {
+      // arrange
+      when(
+        () => mockDio.post(
+          any(),
+          data: any(named: 'data'),
+          options: any(named: 'options'),
+        ),
+      ).thenAnswer(
+        (_) async => Response(
+          data: tAccessTokenMap,
+          statusCode: 200,
+          requestOptions: RequestOptions(path: ''),
+        ),
+      );
+
+      // act
+      final result = await authRemoteData.refreshToken(tRefreshToken);
+
+      // assert
+      expect(result, equals(tNewAccessToken));
+      verify(
+        () => mockDio.post(
+          '/auth/refresh',
+          data: {'refresh_token': tRefreshToken},
+          options: any(named: 'options'),
+        ),
+      ).called(1);
+    });
+
+    test('should throw ServerException on DioException', () async {
+      // arrange
+      when(
+        () => mockDio.post(
+          any(),
+          data: any(named: 'data'),
+          options: any(named: 'options'),
+        ),
+      ).thenThrow(
+        DioException(
+          requestOptions: RequestOptions(path: '/'),
+          message: 'Timeout',
+        ),
+      );
+
+      // act
+      final result = authRemoteData.refreshToken(tRefreshToken);
+
+      // assert
+      expect(result, throwsA(isA<ServerException>()));
+    });
+
+    test('should throw ServerException on unknown exception', () async {
+      // arrange
+      when(
+        () => mockDio.post(
+          any(),
+          data: any(named: 'data'),
+          options: any(named: 'options'),
+        ),
+      ).thenThrow(Exception('boom'));
+
+      // act
+      final result = authRemoteData.refreshToken(tRefreshToken);
 
       // assert
       expect(result, throwsA(isA<ServerException>()));
