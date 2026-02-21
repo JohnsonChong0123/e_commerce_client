@@ -2,6 +2,7 @@ import 'package:bloc_test/bloc_test.dart';
 import 'package:e_commerce_client/features/domain/entity/user_entity.dart';
 import 'package:e_commerce_client/core/errors/failure.dart';
 import 'package:e_commerce_client/core/usecase/usecase.dart';
+import 'package:e_commerce_client/features/domain/usecases/auth/check_auth_status.dart';
 import 'package:e_commerce_client/features/domain/usecases/auth/facebook_login.dart';
 import 'package:e_commerce_client/features/domain/usecases/auth/google_login.dart';
 import 'package:e_commerce_client/features/domain/usecases/auth/login.dart';
@@ -19,11 +20,14 @@ class MockGoogleLogin extends Mock implements GoogleLogin {}
 
 class MockFacebookLogin extends Mock implements FacebookLogin {}
 
+class MockCheckStatus extends Mock implements CheckAuthStatus {}
+
 void main() {
   late MockSignUp mockSignUp;
   late MockLogin mockLogin;
   late MockGoogleLogin mockGoogleLogin;
   late MockFacebookLogin mockFacebookLogin;
+  late MockCheckStatus mockCheckStatus;
   late AuthBloc authBloc;
 
   const tFirstName = 'Test';
@@ -62,11 +66,13 @@ void main() {
     mockLogin = MockLogin();
     mockGoogleLogin = MockGoogleLogin();
     mockFacebookLogin = MockFacebookLogin();
+    mockCheckStatus = MockCheckStatus();
     authBloc = AuthBloc(
       signUp: mockSignUp,
       login: mockLogin,
       googleLogin: mockGoogleLogin,
       facebookLogin: mockFacebookLogin,
+      checkAuthStatus: mockCheckStatus,
     );
   });
 
@@ -218,6 +224,40 @@ void main() {
       ],
       verify: (_) {
         verify(() => mockFacebookLogin(NoParams())).called(1);
+      },
+    );
+  });
+  group('AuthBloc CheckAuthStatus', () {
+    blocTest<AuthBloc, AuthState>(
+      'should emit [AuthLoading, AuthAuthenticated] when user is authenticated',
+      build: () {
+        when(
+          () => mockCheckStatus(NoParams()),
+        ).thenAnswer((_) async => Right(tUserEntity));
+        return authBloc;
+      },
+      act: (bloc) => bloc.add(const AuthCheckStatus()),
+      expect: () => [AuthLoading(), AuthAuthenticated(user: tUserEntity)],
+      verify: (_) {
+        verify(() => mockCheckStatus(NoParams())).called(1);
+      },
+    );
+
+    blocTest<AuthBloc, AuthState>(
+      'should emit [AuthLoading, AuthUnauthenticated] when user is not authenticated',
+      build: () {
+        when(
+          () => mockCheckStatus(NoParams()),
+        ).thenAnswer((_) async => const Left(Failure('User is not authenticated')));
+        return authBloc;
+      },
+      act: (bloc) => bloc.add(const AuthCheckStatus()),
+      expect: () => [
+        AuthLoading(),
+        const AuthUnauthenticated(),
+      ],
+      verify: (_) {
+        verify(() => mockCheckStatus(NoParams())).called(1);
       },
     );
   });
