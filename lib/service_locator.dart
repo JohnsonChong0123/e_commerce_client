@@ -11,6 +11,7 @@ import 'features/data/repositories/auth_repository_impl.dart';
 import 'features/data/sources/local/user_local_data.dart';
 import 'features/data/sources/remote/auth_remote_data.dart';
 import 'features/domain/repositories/auth/auth_repository.dart';
+import 'features/domain/usecases/auth/check_auth_status.dart';
 import 'features/domain/usecases/auth/facebook_login.dart';
 import 'features/domain/usecases/auth/google_login.dart';
 import 'features/domain/usecases/auth/login.dart';
@@ -30,9 +31,6 @@ final sl = GetIt.instance;
 ///
 /// It must be called before the app starts.
 Future<void> initServiceLocator() async {
-  sl.registerLazySingleton(() => DioClient());
-  sl.registerLazySingleton(() => sl<DioClient>().dio);
-
   // Google Sign In - resgister as a singleton without initialization, since GoogleAuthService will handle it
   sl.registerLazySingleton<GoogleSignIn>(() => GoogleSignIn.instance);
 
@@ -59,6 +57,14 @@ Future<void> initServiceLocator() async {
 
   /// Registers all dependencies related to the user feature.
   _initUser();
+
+  sl.registerLazySingleton(
+    () => DioClient(
+      userLocalData: sl(),
+      getAuthRemoteData: () => sl<AuthRemoteData>(),
+    ),
+  );
+  sl.registerLazySingleton(() => sl<DioClient>().dio);
 }
 
 void _initAuth() {
@@ -80,10 +86,26 @@ void _initAuth() {
     ..registerLazySingleton(() => Login(sl()))
     ..registerLazySingleton(() => GoogleLogin(sl()))
     ..registerLazySingleton(() => FacebookLogin(sl()))
+    ..registerLazySingleton(() => CheckAuthStatus(sl()))
     // Presentation layer: BLoC
     ..registerFactory(
-      () => AuthBloc(signUp: sl(), login: sl(), googleLogin: sl(), facebookLogin: sl()),
+      () => AuthBloc(
+        signUp: sl(),
+        login: sl(),
+        googleLogin: sl(),
+        facebookLogin: sl(),
+        checkAuthStatus: sl(),
+      ),
     );
+  // ..registerLazySingleton<AuthBloc>(
+  //   () => AuthBloc(
+  //     signUp: sl(),
+  //     login: sl(),
+  //     googleLogin: sl(),
+  //     facebookLogin: sl(),
+  //     checkAuthStatus: sl(),
+  //   ),
+  // );
 }
 
 void _initUser() {
