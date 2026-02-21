@@ -14,6 +14,7 @@ import '../../../domain/usecases/auth/sign_up.dart';
 part 'auth_event.dart';
 part 'auth_state.dart';
 
+// Add AuthSuccess with UserEntity
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final SignUp _signUp;
   final Login _login;
@@ -41,17 +42,25 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   }
 
   void _onAuthSignUp(AuthSignUp event, Emitter<AuthState> emit) async {
-    await _handleAuth(
-      emit: emit,
-      useCase: () => _signUp(
-        SignUpParams(
-          email: event.email,
-          password: event.password,
-          firstName: event.firstName,
-          lastName: event.lastName,
-          phone: event.phone,
-        ),
+    emit(const AuthLoading());
+
+    final res = await _signUp(
+      SignUpParams(
+        firstName: event.firstName,
+        lastName: event.lastName,
+        email: event.email,
+        password: event.password,
+        phone: event.phone,
       ),
+    );
+
+    res.fold(
+      (failure) {
+        emit(AuthFailure(failure.message));
+      },
+      (user) {
+        emit(AuthSuccess());
+      },
     );
   }
 
@@ -113,7 +122,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     final res = await useCase();
     res.fold(
       (failure) => emit(AuthFailure(failure.message)),
-      (_) => emit(AuthSuccess()),
+      (user) => emit(AuthAuthenticated(user: user)),
     );
   }
 }

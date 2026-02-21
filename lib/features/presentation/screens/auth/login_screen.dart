@@ -42,9 +42,9 @@ class LoginScreen extends StatelessWidget {
                 listener: (context, state) {
                   if (state is AuthFailure) {
                     showSnackBar(context, state.message);
-                  } else if (state is AuthSuccess) {
+                  } else if (state is AuthAuthenticated) {
                     showSnackBar(context, "Login Successful");
-                    context.go(AppRouter.home);
+                    // context.go(AppRouter.home);
                   }
                 },
                 builder: (context, state) {
@@ -76,9 +76,9 @@ class LoginScreen extends StatelessWidget {
                 listener: (context, state) {
                   if (state is AuthFailure) {
                     showSnackBar(context, state.message);
-                  } else if (state is AuthSuccess) {
+                  } else if (state is AuthAuthenticated) {
                     showSnackBar(context, "Login Successful");
-                    context.go(AppRouter.home);
+                    // context.go(AppRouter.home);
                   }
                 },
                 builder: (context, state) {
@@ -190,9 +190,9 @@ class _LoginFormState extends State<LoginForm> {
             listener: (context, state) {
               if (state is AuthFailure) {
                 showSnackBar(context, state.message);
-              } else if (state is AuthSuccess) {
+              } else if (state is AuthAuthenticated) {
                 showSnackBar(context, "Login Successful");
-                context.go(AppRouter.home);
+                //   context.go(AppRouter.home);
               }
             },
             builder: (context, state) {

@@ -135,7 +135,7 @@ void main() {
       },
       act: (bloc) =>
           bloc.add(const AuthLogin(email: tEmail, password: tPassword)),
-      expect: () => [AuthLoading(), AuthSuccess()],
+      expect: () => [AuthLoading(), AuthAuthenticated(user: tUserEntity)],
       verify: (_) {
         verify(() => mockLogin(any())).called(1);
       },
@@ -168,7 +168,7 @@ void main() {
         return authBloc;
       },
       act: (bloc) => bloc.add(const AuthGoogleLogin()),
-      expect: () => [AuthLoading(type: AuthLoadingType.google), AuthSuccess()],
+      expect: () => [AuthLoading(type: AuthLoadingType.google), AuthAuthenticated(user: tUserEntity)],
       verify: (_) {
         verify(() => mockGoogleLogin(NoParams())).called(1);
       },
@@ -203,7 +203,7 @@ void main() {
         return authBloc;
       },
       act: (bloc) => bloc.add(const AuthFacebookLogin()),
-      expect: () => [AuthLoading(type: AuthLoadingType.facebook), AuthSuccess()],
+      expect: () => [AuthLoading(type: AuthLoadingType.facebook), AuthAuthenticated(user: tUserEntity)],
       verify: (_) {
         verify(() => mockFacebookLogin(NoParams())).called(1);
       },
