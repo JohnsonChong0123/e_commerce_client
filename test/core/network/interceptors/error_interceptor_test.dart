@@ -9,15 +9,16 @@ class MockErrorInterceptorHandler extends Mock
     implements ErrorInterceptorHandler {}
 
 void main() {
-  late ErrorInterceptor errorInterceptor;
   late MockErrorInterceptorHandler mockErrorInterceptorHandler;
+  late ErrorInterceptor interceptor;
+
 
   setUpAll(() {
     registerFallbackValue(MockDioException());
   });
 
   setUp(() {
-    errorInterceptor = ErrorInterceptor();
+    interceptor = ErrorInterceptor();
     mockErrorInterceptorHandler = MockErrorInterceptorHandler();
   });
 
@@ -29,7 +30,7 @@ void main() {
     );
 
     // act
-    errorInterceptor.onError(dioException, mockErrorInterceptorHandler);
+    interceptor.onError(dioException, mockErrorInterceptorHandler);
 
     // assert
     verify(
@@ -53,7 +54,7 @@ void main() {
     );
 
     // act
-    errorInterceptor.onError(dioException, mockErrorInterceptorHandler);
+    interceptor.onError(dioException, mockErrorInterceptorHandler);
 
     // assert
     verify(
@@ -77,7 +78,7 @@ void main() {
     );
 
     // act
-    errorInterceptor.onError(dioException, mockErrorInterceptorHandler);
+    interceptor.onError(dioException, mockErrorInterceptorHandler);
 
     // assert
     verify(
@@ -101,7 +102,7 @@ void main() {
     );
 
     // act
-    errorInterceptor.onError(dioException, mockErrorInterceptorHandler);
+    interceptor.onError(dioException, mockErrorInterceptorHandler);
 
     // assert
     verify(
@@ -126,7 +127,7 @@ void main() {
     );
 
     // act
-    errorInterceptor.onError(dioException, mockErrorInterceptorHandler);
+    interceptor.onError(dioException, mockErrorInterceptorHandler);
 
     // assert
     verify(
@@ -150,7 +151,7 @@ void main() {
     );
 
     // act
-    errorInterceptor.onError(dioException, mockErrorInterceptorHandler);
+    interceptor.onError(dioException, mockErrorInterceptorHandler);
 
     // assert
     verify(
