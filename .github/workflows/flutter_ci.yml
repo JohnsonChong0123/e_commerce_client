@@ -6,8 +6,8 @@ on:
   pull_request:       
 
 jobs:
-  debug_build:
-    name: Debug Build
+  release_build:
+    name: Release Build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -27,11 +27,11 @@ jobs:
       
       - name: Decode and Setup Keystore
         run: |
-          echo "${{ secrets.DEBUG_KEYSTORE_BASE64 }}" | base64 --decode > android/app/debug.keystore
+          echo "${{ secrets.RELEASE_KEYSTORE_BASE64 }}" | base64 --decode > android/app/release.keystore
           echo "storePassword=${{ secrets.KEYSTORE_PASSWORD }}" > android/key.properties
           echo "keyPassword=${{ secrets.KEY_PASSWORD }}" >> android/key.properties
           echo "keyAlias=${{ secrets.KEY_ALIAS }}" >> android/key.properties
-          echo "storeFile=debug.keystore" >> android/key.properties
+          echo "storeFile=release.keystore" >> android/key.properties
       
       - name: Inject Facebook Secrets
         run: |
@@ -51,12 +51,12 @@ jobs:
       - name: Run Tests
         run: flutter test
       
-      - name: Build Debug APK
-        run: flutter build apk --debug -v
+      - name: Build Release APK
+        run: flutter build apk --release -v
         
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: flutter-debug-app
+          name: flutter-release-app
           path: build/app/outputs/flutter-apk/*.apk
           if-no-files-found: error
