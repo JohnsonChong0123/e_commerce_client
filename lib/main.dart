@@ -5,7 +5,7 @@ import 'package:go_router/go_router.dart';
 
 import 'core/routes/app_router.dart';
 import 'core/themes/app.theme.dart';
-import 'features/presentation/blocs/auth/auth_bloc.dart';
+import 'presentation/blocs/auth/auth_bloc.dart';
 import 'service_locator.dart';
 
 void main() async {

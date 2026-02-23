@@ -1,7 +1,7 @@
 import 'package:dio/dio.dart';
 
-import '../../../features/data/sources/local/user_local_data.dart';
-import '../../../features/data/sources/remote/auth_remote_data.dart';
+import '../../../data/sources/local/user_local_data.dart';
+import '../../../data/sources/remote/auth_remote_data.dart';
 
 class AuthInterceptor extends Interceptor {
   final Dio dio;

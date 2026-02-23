@@ -1,6 +1,6 @@
 import 'package:dio/dio.dart';
-import '../../features/data/sources/local/user_local_data.dart';
-import '../../features/data/sources/remote/auth_remote_data.dart';
+import '../../data/sources/local/user_local_data.dart';
+import '../../data/sources/remote/auth_remote_data.dart';
 import '../common/constants/server_constant.dart';
 import 'interceptors/auth_interceptor.dart';
 import 'interceptors/error_interceptor.dart';
