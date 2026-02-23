@@ -8,15 +8,20 @@ import 'core/external/facebook/facebook_auth_service.dart';
 import 'core/external/google/google_auth_service.dart';
 import 'core/network/dio_client.dart';
 import 'features/data/repositories/auth_repository_impl.dart';
+import 'features/data/repositories/product_repository_impl.dart';
 import 'features/data/sources/local/user_local_data.dart';
 import 'features/data/sources/remote/auth_remote_data.dart';
 import 'features/domain/repositories/auth/auth_repository.dart';
+import 'features/domain/repositories/product_repository.dart';
 import 'features/domain/usecases/auth/check_auth_status.dart';
 import 'features/domain/usecases/auth/facebook_login.dart';
 import 'features/domain/usecases/auth/google_login.dart';
 import 'features/domain/usecases/auth/login.dart';
 import 'features/domain/usecases/auth/sign_up.dart';
+import 'features/domain/usecases/product/get_products.dart';
 import 'features/presentation/blocs/auth/auth_bloc.dart';
+import '/features/data/sources/remote/product_remote_data.dart';
+import '/features/presentation/cubits/product/product_cubit.dart';
 
 final sl = GetIt.instance;
 
@@ -52,11 +57,14 @@ Future<void> initServiceLocator() async {
     () => FacebookAuthServiceImpl(facebookAuth: sl()),
   );
 
-  /// Registers all dependencies related to the authentication feature.
+  // Registers all dependencies related to the authentication feature.
   _initAuth();
 
-  /// Registers all dependencies related to the user feature.
+  // Registers all dependencies related to the user feature.
   _initUser();
+
+  // Registers all dependencies related to the product feature.
+  _initProduct();
 
   sl.registerLazySingleton(
     () => DioClient(
@@ -116,4 +124,20 @@ void _initUser() {
     ..registerLazySingleton<UserLocalData>(
       () => UserLocalDataImpl(flutterSecureStorage: sl()),
     );
+}
+
+void _initProduct() {
+  sl
+    // Data layer: Remote data source
+    ..registerLazySingleton<ProductRemoteData>(
+      () => ProductRemoteDataImpl(dio: sl()),
+    )
+    // Data layer: Repository implementation
+    ..registerLazySingleton<ProductRepository>(
+      () => ProductRepositoryImpl(productRemoteData: sl()),
+    )
+    // Domain layer: Use case
+    ..registerLazySingleton(() => GetProducts(sl()))
+    // Presentation layer: Cubit
+    ..registerFactory(() => ProductCubit(getProducts: sl()));
 }

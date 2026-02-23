@@ -1,9 +1,12 @@
 import 'package:e_commerce_client/features/presentation/screens/splash_screen.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../../features/presentation/blocs/auth/auth_bloc.dart';
+import '../../features/presentation/cubits/product/product_cubit.dart';
 import '../../features/presentation/screens/auth/login_screen.dart';
 import '../../features/presentation/screens/auth/sign_up_screen.dart';
 import '../../features/presentation/screens/home_screen.dart';
+import '../../service_locator.dart';
 
 class AppRouter {
   static const String splash = '/';
@@ -33,7 +36,10 @@ class AppRouter {
         GoRoute(
           path: home,
           name: 'home',
-          builder: (context, state) => const HomeScreen(),
+          builder: (context, state) => BlocProvider(
+            create: (context) => ProductCubit(getProducts: sl()),
+            child: const HomeScreen(),
+          ),
         ),
       ],
     );
