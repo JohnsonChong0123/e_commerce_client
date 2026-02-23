@@ -1,0 +1,10 @@
+{
+    "asin": "p1",
+    "title": "Test Product",
+    "description": "This is a test product",
+    "initial_price": 100.0,
+    "final_price": 80.0,
+    "image_url": "product_image.png",
+    "rating": 4.5,
+    "reviews_count": 120
+}

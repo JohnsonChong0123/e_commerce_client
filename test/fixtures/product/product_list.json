@@ -1,0 +1,32 @@
+[
+    {
+        "asin": "1",
+        "title": "test",
+        "description": "description",
+        "initial_price": 20.0,
+        "final_price": 15.0,
+        "image_url": "imageUrl",
+        "rating": 4.5,
+        "reviews_count": 100
+    },
+    {
+        "asin": "2",
+        "title": "test2",
+        "description": "description2",
+        "initial_price": 10.0,
+        "final_price": 8.0,
+        "image_url": "imageUrl2",
+        "rating": 4.0,
+        "reviews_count": 50
+    },
+    {
+        "asin": "3",
+        "title": "test3",
+        "description": "description3",
+        "initial_price": 15.0,
+        "final_price": 12.0,
+        "image_url": "imageUrl3",
+        "rating": 4.2,
+        "reviews_count": 75
+    }
+]
