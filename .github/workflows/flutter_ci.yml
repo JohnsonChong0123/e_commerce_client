@@ -3,8 +3,12 @@ name: Flutter CI
 on:
   push:
     branches: [ main ]
-  pull_request:       
-
+    paths-ignore:
+      - '**.md'
+  pull_request:
+    paths-ignore:
+      - '**.md'
+      
 jobs:
   release_build:
     name: Release Build
