@@ -1,3 +1,4 @@
+import 'package:e_commerce_client/domain/usecases/cart/remove_cart_item.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -8,19 +9,26 @@ import 'core/external/facebook/facebook_auth_service.dart';
 import 'core/external/google/google_auth_service.dart';
 import 'core/network/dio_client.dart';
 import 'data/repositories/auth_repository_impl.dart';
+import 'data/repositories/cart_repository_impl.dart';
 import 'data/repositories/product_repository_impl.dart';
 import 'data/sources/local/user_local_data.dart';
 import 'data/sources/remote/auth_remote_data.dart';
+import 'data/sources/remote/cart_remote_data.dart';
 import 'domain/repositories/auth_repository.dart';
+import 'domain/repositories/cart_repository.dart';
 import 'domain/repositories/product_repository.dart';
 import 'domain/usecases/auth/check_auth_status.dart';
 import 'domain/usecases/auth/facebook_login.dart';
 import 'domain/usecases/auth/google_login.dart';
 import 'domain/usecases/auth/login.dart';
 import 'domain/usecases/auth/sign_up.dart';
+import 'domain/usecases/cart/add_to_cart.dart';
+import 'domain/usecases/cart/clear_cart.dart';
+import 'domain/usecases/cart/get_cart.dart';
 import 'domain/usecases/product/get_products.dart';
 import 'presentation/blocs/auth/auth_bloc.dart';
 import 'data/sources/remote/product_remote_data.dart';
+import 'presentation/cubits/cart/cart_cubit.dart';
 import 'presentation/cubits/product/product_cubit.dart';
 
 final sl = GetIt.instance;
@@ -65,6 +73,9 @@ Future<void> initServiceLocator() async {
 
   // Registers all dependencies related to the product feature.
   _initProduct();
+
+  // Registers all dependencies related to the cart feature.
+  _initCart();
 
   sl.registerLazySingleton(
     () => DioClient(
@@ -140,4 +151,21 @@ void _initProduct() {
     ..registerLazySingleton(() => GetProducts(sl()))
     // Presentation layer: Cubit
     ..registerFactory(() => ProductCubit(getProducts: sl()));
+}
+
+void _initCart() {
+  sl
+    // Data layer: Remote data source
+    ..registerLazySingleton<CartRemoteData>(() => CartRemoteDataImpl(dio: sl()))
+    // Data layer: Repository implementation
+    ..registerLazySingleton<CartRepository>(
+      () => CartRepositoryImpl(cartRemoteData: sl()),
+    )
+    // Domain layer: Use case
+    ..registerLazySingleton(() => AddToCart(sl()))
+    ..registerLazySingleton(() => GetCart(sl()))
+    ..registerLazySingleton(() => RemoveCartItem(sl()))
+    ..registerLazySingleton(() => ClearCart(sl()))
+    // Presentation layer: Cubit
+    ..registerFactory(() => CartCubit(addToCart: sl(), getCart: sl(), removeCartItem: sl(), clearCart: sl()));
 }

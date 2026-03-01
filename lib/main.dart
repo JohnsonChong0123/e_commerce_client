@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'core/routes/app_router.dart';
 import 'core/themes/app.theme.dart';
 import 'presentation/blocs/auth/auth_bloc.dart';
+import 'presentation/cubits/cart/cart_cubit.dart';
 import 'service_locator.dart';
 
 void main() async {
@@ -20,8 +21,20 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) => sl<AuthBloc>()..add(const AuthCheckStatus()),
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(
+          create: (_) => sl<AuthBloc>()..add(const AuthCheckStatus()),
+        ),
+        BlocProvider(
+          create: (_) => CartCubit(
+            addToCart: sl(),
+            getCart: sl(),
+            removeCartItem: sl(),
+            clearCart: sl(),
+          ),
+        ),
+      ],
       child: const AppView(),
     );
   }
