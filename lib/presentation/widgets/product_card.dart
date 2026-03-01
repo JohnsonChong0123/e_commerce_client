@@ -1,5 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../../core/themes/app_colors.dart';
 import '../../domain/entity/product_view_entity.dart';
 
@@ -11,7 +12,7 @@ class ProductCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        // TODO: Navigate to product details page
+        context.push('/productDetails', extra: product);
       },
       child: Card(
         elevation: 2,
